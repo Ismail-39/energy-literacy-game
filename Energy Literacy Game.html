@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Energy Literacy Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{--heat:#d6443a;--water:#2f6fc7;--power:#f0b400;--leaf:#2f7a3e;--ink:#161513;--ink-2:#4a443d;--paper:#f4efe6;--paper-2:#ebe4d6;--card:#fbf8f1;--line:#1d1a16}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:"Bricolage Grotesque",system-ui,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
+#root{max-width:1240px;margin:0 auto;padding:40px 32px 80px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-2);margin:0 0 14px;display:flex;align-items:center;gap:10px}
+.eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--ink);display:inline-block}
+h1{font-weight:500;font-size:clamp(28px,4vw,46px);line-height:1.05;letter-spacing:-.02em;margin:0 0 16px;font-variation-settings:"opsz" 60}
+h1 em{font-style:italic;font-weight:300;color:var(--ink-2)}
+.lede{font-size:16px;line-height:1.6;color:var(--ink-2);max-width:64ch;margin:0 0 32px}
+.section-label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);margin:0 0 12px}
+.btn-primary{font-family:"Bricolage Grotesque";font-weight:600;font-size:16px;background:var(--ink);color:var(--paper);border:none;border-radius:8px;padding:14px 28px;cursor:pointer;transition:transform .15s ease,opacity .15s ease}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed}
+.bead-chip{width:12px;height:12px;border-radius:50%;display:inline-block;box-shadow:inset -1px -2px 0 rgba(0,0,0,.18),inset 1px 1px 0 rgba(255,255,255,.4)}
+.bead-heat{background:var(--heat)}.bead-water{background:var(--water)}.bead-power{background:var(--power)}
+
+/* start screen */
+.persona-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:32px}
+@media(max-width:900px){.persona-grid{grid-template-columns:repeat(2,1fr)}}
+.persona-card{text-align:left;background:var(--card);border:1px solid #ddd2bc;border-radius:10px;padding:18px 16px;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:transform .15s ease,box-shadow .15s ease}
+.persona-card:hover{transform:translateY(-2px)}
+.persona-card.selected{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
+.persona-icon{width:56px;height:56px}
+.persona-name{font-weight:600;font-size:17px}
+.persona-blurb{font-size:12.5px;color:var(--ink-2);line-height:1.4}
+.mode-toggle{display:flex;gap:10px;margin-bottom:36px;flex-wrap:wrap}
+.chip{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.03em;padding:10px 16px;border-radius:100px;border:1px solid #ddd2bc;background:var(--card);cursor:pointer}
+.chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn-start{display:block}
+.celine-wordmark{display:flex;align-items:center;margin-bottom:18px}
+.celine-wordmark-text{font-weight:700;font-size:15px;letter-spacing:.04em;display:flex;flex-direction:column;line-height:1.2}
+.celine-wordmark-text.lg{font-size:18px}
+.celine-wordmark-text em{font-style:normal;font-family:"JetBrains Mono",monospace;font-weight:400;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.hud-logo{display:flex;align-items:center;margin-right:4px}
+.site-footer{max-width:1240px;margin:0 auto;padding:24px 32px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-2);border-top:1px solid #ddd2bc}
+.footer-eu{display:flex;align-items:center;gap:10px;max-width:520px}
+.eu-flag{flex-shrink:0;border-radius:2px}
+.live-standings{background:var(--card);border:1px solid #ddd2bc;border-radius:8px;padding:14px}
+.standing-row{display:flex;align-items:center;gap:10px;padding:6px 4px;font-size:13px}
+.standing-row.mine{font-weight:600;background:var(--paper-2);border-radius:6px}
+.standing-rank{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-2);width:16px}
+.standing-name{flex:1}
+.standing-total{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-2)}
+.start-top{display:flex;justify-content:space-between;align-items:center;gap:32px;margin-bottom:32px}
+.start-text{flex:1}
+.hero-graphic{width:260px;flex-shrink:0}
+@media(max-width:800px){.start-top{flex-direction:column-reverse}.hero-graphic{width:200px}}
+.weather-chip{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid #ddd2bc;border-radius:100px;padding:6px 16px 6px 8px;width:fit-content;margin-top:4px;cursor:pointer}
+.weather-chip:hover{border-color:var(--ink)}
+.weather-card{background:var(--card);border:1px solid #ddd2bc;border-radius:12px;padding:16px 18px;width:fit-content;margin-top:4px;cursor:pointer;min-width:320px}
+.weather-card:hover{border-color:var(--ink)}
+.weather-card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.weather-loc{display:block;font-weight:600;font-size:14px}
+.weather-stats{display:flex;flex-direction:column;gap:7px;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-2);border-top:1px dashed #cfc3a8;padding-top:10px}
+.weather-stats span{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.stat-icon{width:16px;height:16px;flex-shrink:0}
+.weather-icon{width:34px;height:34px;flex-shrink:0}
+.weather-temp{font-weight:600;font-size:15px;margin-right:8px}
+.weather-label{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em}
+.hud-weather{display:flex;align-items:center;gap:6px;font-family:"JetBrains Mono",monospace;font-size:12px;border-left:1px solid #ddd2bc;padding-left:14px}
+.hud-weather .weather-icon{width:22px;height:22px}
+
+/* HUD + gameplay */
+.hud{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;background:var(--card);border:1px solid #ddd2bc;border-radius:10px;padding:14px 20px;margin-bottom:24px;position:sticky;top:12px;z-index:5;box-shadow:0 10px 20px -14px rgba(60,40,10,.25)}
+.hud-blocks{display:flex;gap:6px}
+.hud-block{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border-radius:100px;color:var(--ink-2);border:1px solid transparent}
+.hud-block.active{background:var(--ink);color:var(--paper)}
+.hud-block.done{color:var(--leaf);border-color:var(--leaf)}
+.hud-meters{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hud-meter{display:flex;align-items:center;gap:6px;font-family:"JetBrains Mono",monospace;font-size:13px}
+.hud-comfort,.hud-efficiency{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);border-left:1px solid #ddd2bc;padding-left:14px}
+.gameplay-body{display:grid;grid-template-columns:1fr 1.3fr;gap:28px}
+@media(max-width:900px){.gameplay-body{grid-template-columns:1fr}}
+.apartment-scene{background:var(--paper-2);border:1px solid #ddd2bc;border-radius:12px;padding:10px;margin-bottom:20px;box-shadow:inset 0 2px 6px rgba(0,0,0,.05)}
+.iso-apartment{width:100%;height:auto;display:block}
+.mission-bar{background:var(--card);border:1px solid #ddd2bc;border-radius:8px;padding:14px;box-shadow:0 8px 16px -12px rgba(60,40,10,.2)}
+.mission-label{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);display:block;margin-bottom:8px}
+.mission-track{height:8px;background:var(--paper-2);border-radius:100px;overflow:hidden}
+.mission-fill{height:100%;background:var(--leaf);transition:width .3s ease}
+.action-card{background:var(--card);border:1px solid #ddd2bc;border-radius:10px;padding:16px;margin-bottom:14px;box-shadow:0 8px 16px -12px rgba(60,40,10,.2)}
+.action-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.action-label{font-weight:600;font-size:15px}
+.option-row{display:flex;flex-wrap:wrap;gap:8px}
+.option-btn{font-family:"Bricolage Grotesque";font-size:13.5px;background:var(--paper);border:1px solid #ddd2bc;border-radius:8px;padding:9px 14px;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:120px}
+.option-btn:hover:not(:disabled){border-color:var(--ink)}
+.option-btn.selected{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.option-btn.locked{opacity:.5;cursor:not-allowed}
+.option-delta{font-family:"JetBrains Mono",monospace;font-size:10.5px;opacity:.75}
+.option-note{font-family:"JetBrains Mono",monospace;font-size:9.5px;color:var(--heat);max-width:160px}
+.btn-next{display:block;margin-top:10px}
+.gameplay-nav{display:flex;justify-content:space-between;gap:12px;margin-top:10px}
+.btn-secondary{font-family:"Bricolage Grotesque";font-weight:600;font-size:15px;background:transparent;color:var(--ink);border:1px solid #ddd2bc;border-radius:8px;padding:14px 22px;cursor:pointer}
+.btn-secondary:hover:not(:disabled){border-color:var(--ink)}
+.btn-secondary:disabled{opacity:.3;cursor:not-allowed}
+.hud-exit{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:transparent;border:none;color:var(--ink-2);cursor:pointer;padding:6px 4px}
+.hud-exit:hover{color:var(--ink)}
+.details-form{display:flex;flex-direction:column;gap:16px;max-width:480px;margin-bottom:28px}
+.field{display:flex;flex-direction:column;gap:6px;flex:1}
+.field span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.field input{font-family:"Bricolage Grotesque";font-size:16px;padding:12px 14px;border:1px solid #ddd2bc;border-radius:8px;background:var(--card);color:var(--ink)}
+.field input:focus{outline:2px solid var(--ink);outline-offset:1px}
+.field-row{display:flex;gap:16px}
+@media(max-width:520px){.field-row{flex-direction:column}}
+.live-ranking{background:var(--card);border:1px solid #ddd2bc;border-radius:8px;padding:14px;margin-top:12px}
+.live-row{display:flex;align-items:center;gap:10px;padding:6px 4px;font-size:13px}
+.live-row.mine{font-weight:600;background:var(--paper-2);border-radius:6px}
+.live-rank{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-2);width:16px}
+.live-name{flex:1}
+.live-total{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-2)}
+.podium-row{display:flex;align-items:flex-end;justify-content:center;gap:18px;margin:32px 0 36px}
+.podium-slot{display:flex;flex-direction:column;align-items:center;gap:6px;width:150px}
+.podium-slot.empty{visibility:hidden}
+.podium-name{font-weight:600;font-size:14px;text-align:center}
+.podium-total{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-2)}
+.podium-block{width:100%;background:var(--card);border:1px solid #ddd2bc;border-radius:8px 8px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:10px}
+.podium-rank{font-family:"Bricolage Grotesque";font-weight:700;font-size:28px;color:var(--ink-2)}
+.btn-share{margin-left:12px}
+
+/* summary */
+.narrative-card{background:var(--card);border:1px solid #ddd2bc;border-radius:10px;padding:24px;margin-bottom:24px;font-size:15px;line-height:1.65}
+.narrative-card p{margin:0 0 12px}
+.narrative-card p:last-child{margin-bottom:0}
+.bead-tally{background:var(--card);border:1px solid #ddd2bc;border-radius:10px;padding:20px;margin-bottom:28px;display:flex;flex-direction:column;gap:10px}
+.tally-row{display:flex;align-items:center;gap:14px}
+.tally-label{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;width:70px;color:var(--ink-2)}
+.tally-beads{display:flex;gap:5px;align-items:center}
+.tally-zero{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-2)}
+
+/* results */
+.badge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:36px}
+@media(max-width:900px){.badge-grid{grid-template-columns:repeat(2,1fr)}}
+.badge-card{background:var(--card);border:1px solid #ddd2bc;border-radius:10px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.badge-card.locked{opacity:.35}
+.badge-card.earned{border-color:var(--leaf);box-shadow:0 0 0 1px var(--leaf) inset}
+.badge-mark{width:64px;height:64px}
+.badge-card-name{font-weight:600;font-size:13px}
+.badge-card-tier{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.leaderboard{background:var(--card);border:1px solid #ddd2bc;border-radius:10px;padding:6px;margin-bottom:32px}
+.leader-row{display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:6px}
+.leader-row.mine{background:var(--paper-2);font-weight:600}
+.leader-rank{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-2);width:20px}
+.leader-name{flex:1;font-size:14px}
+.leader-total{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-2)}
+
+a{color:var(--leaf)}a:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="game-data.js"></script>
+<script src="weather.js"></script>
+<script type="text/babel" src="screens.jsx"></script>
+<script type="text/babel" src="gameplay.jsx"></script>
+<script type="text/babel">
+const ROOM_DEFAULT = () => ({
+  kitchen: { light: false, window: false, temp: 'normal', activity: null },
+  bathroom: { light: false, window: false, temp: 'normal', activity: null },
+  living: { light: false, window: false, temp: 'normal', activity: null },
+  bedroom: { light: false, window: false, temp: 'normal', activity: null }
+});
+
+function applyRoomEffect(rooms, action, opt) {
+  const r = { ...rooms };
+  const room = { ...r[action.room] };
+  if (action.id.includes('light')) room.light = opt.beads > 0;
+  if (action.id.includes('window') || action.id === 'balcony' || action.id === 'blinds') room.window = opt.beads > 0;
+  if (action.id.includes('shower')) room.activity = opt.beads > 0 ? 'shower' : null;
+  if (action.id === 'breakfast' || action.id === 'dinner') room.activity = opt.beads > 0 ? 'cooking' : null;
+  if (action.id.includes('thermostat')) room.temp = opt.beads === 0 ? 'low' : opt.beads >= 2 ? 'high' : 'normal';
+  if (action.id === 'it-day') room.activity = opt.beads > 0 ? 'it' : null;
+  if (action.id === 'standby') room.activity = opt.beads > 0 ? 'standby' : null;
+  r[action.room] = room;
+  return r;
+}
+
+function App() {
+  const [screen, setScreen] = React.useState('start');
+  const [persona, setPersona] = React.useState(null);
+  const [mode, setMode] = React.useState('coop');
+  const [player, setPlayer] = React.useState(null);
+  const [blockIndex, setBlockIndex] = React.useState(0);
+  const [choices, setChoices] = React.useState({});
+  const [beads, setBeads] = React.useState({ heat: 0, water: 0, power: 0 });
+  const [comfortSum, setComfortSum] = React.useState(0);
+  const [comfortN, setComfortN] = React.useState(0);
+  const [rooms, setRooms] = React.useState(ROOM_DEFAULT());
+  const [buildingEfficiency, setBuildingEfficiency] = React.useState(100);
+  const [weather, setWeather] = React.useState(null);
+
+  React.useEffect(() => {
+    const load = () => window.fetchWeather().then(setWeather);
+    load();
+    const interval = setInterval(load, 30 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const block = window.TIME_BLOCKS[blockIndex];
+
+  function autoLockChoices(nextChoices, b, p) {
+    const updated = { ...nextChoices };
+    b.actions.forEach(a => {
+      const forced = a.options.find(o => o.lockFor);
+      if (forced && forced.lockFor === p.id && updated[a.id] === undefined) {
+        updated[a.id] = a.options.indexOf(forced);
+      }
+    });
+    return updated;
+  }
+
+  function handleChoosePersona(p, m) {
+    setPersona(p);
+    setMode(m);
+    setScreen('details');
+  }
+
+  function handleStart(details) {
+    setPlayer(details);
+    const p = persona;
+    const initChoices = autoLockChoices({}, window.TIME_BLOCKS[0], p);
+    setChoices(initChoices);
+    let r = ROOM_DEFAULT();
+    let b = { heat: 0, water: 0, power: 0 };
+    window.TIME_BLOCKS[0].actions.forEach(a => {
+      if (initChoices[a.id] !== undefined) {
+        const opt = a.options[initChoices[a.id]];
+        r = applyRoomEffect(r, a, opt);
+        b[a.category] += opt.beads;
+      }
+    });
+    setRooms(r);
+    setBeads(b);
+    setScreen('gameplay');
+  }
+
+  function handleChoose(action, optionIndex) {
+    const opt = action.options[optionIndex];
+    const prevIndex = choices[action.id];
+    const prevOpt = prevIndex !== undefined ? action.options[prevIndex] : null;
+    setChoices(c => ({ ...c, [action.id]: optionIndex }));
+    setBeads(b => ({ ...b, [action.category]: b[action.category] - (prevOpt ? prevOpt.beads : 0) + opt.beads }));
+    setComfortSum(s => s - (prevOpt ? prevOpt.comfort : 0) + opt.comfort);
+    if (prevOpt === null) setComfortN(n => n + 1);
+    setRooms(r => applyRoomEffect(r, action, opt));
+    setBuildingEfficiency(e => {
+      const delta = ((prevOpt ? prevOpt.beads : 0) - opt.beads) * 1.5;
+      return Math.max(40, Math.min(100, Math.round(e + delta)));
+    });
+  }
+
+  function handleNext() {
+    if (blockIndex < window.TIME_BLOCKS.length - 1) {
+      const nb = blockIndex + 1;
+      const nextBlockData = window.TIME_BLOCKS[nb];
+      const locked = autoLockChoices(choices, nextBlockData, persona);
+      let addBeads = { heat: 0, water: 0, power: 0 };
+      let r = rooms;
+      nextBlockData.actions.forEach(a => {
+        if (choices[a.id] === undefined && locked[a.id] !== undefined) {
+          const opt = a.options[locked[a.id]];
+          addBeads[a.category] += opt.beads;
+          r = applyRoomEffect(r, a, opt);
+        }
+      });
+      setChoices(locked);
+      setBeads(b => ({ heat: b.heat + addBeads.heat, water: b.water + addBeads.water, power: b.power + addBeads.power }));
+      setRooms(r);
+      setBlockIndex(nb);
+    } else {
+      setScreen('summary');
+    }
+  }
+
+  function handleRestart() {
+    setScreen('start');
+    setPersona(null);
+    setPlayer(null);
+    setBlockIndex(0);
+    setChoices({});
+    setBeads({ heat: 0, water: 0, power: 0 });
+    setComfortSum(0);
+    setComfortN(0);
+    setRooms(ROOM_DEFAULT());
+    setBuildingEfficiency(100);
+  }
+
+  function handleBack() {
+    setBlockIndex(i => Math.max(0, i - 1));
+  }
+
+  const comfortAvg = comfortN ? comfortSum / comfortN : 0;
+  const total = beads.heat + beads.water + beads.power;
+  const rank = [...window.MOCK_HOUSEHOLDS.map(h => h.total), total].sort((a, b) => a - b).indexOf(total) + 1;
+  const earnedIds = window.BADGES.filter(b => b.test({ heat: beads.heat, water: beads.water, power: beads.power, total }, rank)).map(b => b.id);
+
+  const gameScreen = screen === 'start' ? <StartScreen onStart={handleChoosePersona} weather={weather} onWeatherRefresh={setWeather} /> :
+    screen === 'details' ? <DetailsScreen persona={persona} onSubmit={handleStart} onBack={() => setScreen('start')} /> :
+    screen === 'gameplay' ? <GameplayScreen persona={persona} block={block} blockIndex={blockIndex} totalBlocks={window.TIME_BLOCKS.length}
+      rooms={rooms} beads={beads} choices={choices} comfortAvg={comfortAvg} buildingEfficiency={buildingEfficiency}
+      weather={weather} mode={mode} onChoose={handleChoose} onNext={handleNext} onBack={handleBack} onExit={handleRestart} /> :
+    screen === 'summary' ? <SummaryScreen persona={persona} beads={beads} comfortAvg={comfortAvg} buildingEfficiency={mode === 'competitive' ? null : buildingEfficiency}
+      onContinue={() => setScreen('podium')} /> :
+    screen === 'podium' ? (() => {
+      const myLabel = (player && player.name ? player.name : 'You') + ' \u00b7 Bldg ' + (player ? player.building : '?') + ' Apt ' + (player ? player.apt : '?');
+      const sorted = [...window.MOCK_HOUSEHOLDS, { name: myLabel, total, mine: true }].sort((a, b) => a.total - b.total);
+      return <PodiumScreen player={player} beads={beads} rank={rank} sorted={sorted} onContinue={() => setScreen('results')} />;
+    })() :
+    <ResultsScreen persona={persona} player={player} beads={beads} earnedIds={earnedIds} rank={rank} onRestart={handleRestart} />;
+
+  return (
+    <>
+      {gameScreen}
+      <footer className="site-footer">
+        <span>© 2026 CELINE Energy Literacy Game. All rights reserved.</span>
+        <span className="footer-eu"><EUFlag size={30} /><span>Funded by the Horizon Europe Programme of the European Union. Grant Agreement No. 101160667</span></span>
+      </footer>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
